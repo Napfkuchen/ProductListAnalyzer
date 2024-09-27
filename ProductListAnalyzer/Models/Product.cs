@@ -11,6 +11,6 @@
         public string PricePerUnitText { get; set; } = string.Empty;
 
         // nullable, as not mandatory
-        public string? descriptionText { get; set; }
+        public string? DescriptionText { get; set; }
     }
 }
