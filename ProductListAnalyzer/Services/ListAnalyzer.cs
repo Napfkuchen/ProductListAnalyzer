@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.TagHelpers;
-using ProductListAnalyzer.Models;
+﻿using ProductListAnalyzer.Models;
 using System.Text.RegularExpressions;
 
 namespace ProductListAnalyzer.Services
