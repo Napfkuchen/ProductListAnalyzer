@@ -23,6 +23,12 @@ namespace ProductListAnalyzer.Services
             return null;
         }
 
+        // Return item(s) with most bottles
+        public List<Article> GetMostBottles(List<Article> articles)
+        {
+            return null;
+        }
+
         // Returns list with all three main Listing/sorting requirements
         public List<Article> doAll(List<Article> articles) {
             return null;
