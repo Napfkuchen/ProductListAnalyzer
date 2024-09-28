@@ -1,7 +1,6 @@
 ﻿namespace ProductListAnalyzer.Models
 {
-    public class Article
-    {
+    public class Article {
         public int Id { get; set; }
 
         // nullable, as not mandatory

@@ -1,13 +1,11 @@
 ﻿using ProductListAnalyzer.Models;
 using System.Text.RegularExpressions;
 
-namespace ProductListAnalyzer.Services
-{
-    public class ListAnalyzer
-    {
+namespace ProductListAnalyzer.Services {
+    public class ListAnalyzer {
         // Returns Items with a price of €17.99 sorted by ascending unit price 
         public List<Article> GetByPriceAndSortByUnitPrice(List<Article> articles, double targetPrice) {
-            return sortByUnitPrice(articles)
+            return SortByUnitPrice(articles)
                 .Where(a => a.Price == targetPrice)
                 .ToList();
         }
@@ -18,25 +16,29 @@ namespace ProductListAnalyzer.Services
         }
 
         // Returns cheapest item(s) 
-        public List<Article> GetCheapest(List<Article> articles)
-        {
+        public List<Article> GetCheapest(List<Article> articles) {
             return null;
         }
 
         // Return item(s) with most bottles
-        public List<Article> GetMostBottles(List<Article> articles)
-        {
+        public List<Article> GetMostBottles(List<Article> articles) {
             return null;
         }
 
         // Returns list with all three main Listing/sorting requirements
-        public List<Article> doAll(List<Article> articles) {
+        public List<Article> DoAll(List<Article> articles) {
             return null;
         }
 
         // Returns Items with a price of €17.99 sorted by ascending unit price 
-        public List<Article> sortByUnitPrice(List<Article> articles)
-        {
+        public List<Article> SortByPrice(List<Article> articles) {
+            return articles
+                .OrderBy(a => a.PricePerUnitText)
+                .ToList();
+        }
+
+        // Returns Items with a price of €17.99 sorted by ascending unit price 
+        public List<Article> SortByUnitPrice(List<Article> articles) {
             return articles
                 .OrderBy(a => a.PricePerUnitText)
                 .ToList();

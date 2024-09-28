@@ -1,7 +1,6 @@
 ﻿namespace ProductListAnalyzer.Models
 {
-    public class Product
-    {
+    public class Product {
         public int Id { get; set; }
 
         // mandatory field
