@@ -1,4 +1,6 @@
-﻿namespace ProductListAnalyzer.Models
+﻿using Newtonsoft.Json;
+
+namespace ProductListAnalyzer.Models
 {
     public class ProductData {
         public List<Article> Articles { get; set; } = new List<Article>();

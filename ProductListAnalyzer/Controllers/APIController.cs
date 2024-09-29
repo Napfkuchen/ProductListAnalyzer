@@ -32,7 +32,7 @@ namespace ProductListAnalyzer.Controllers {
         }
 
         // Route for returning list of cheapest articles with "/api/APIController/getCheapest"
-        [HttpGet("getMostExpensive")]
+        [HttpGet("getCheapest")]
         public IActionResult GetCheapest() {
             var articles = _productData.Articles;
             var mostCheapestArticle = _listanAnalyzer.GetCheapest(articles);
