@@ -1,59 +1,88 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using ProductListAnalyzer.Models;
 using ProductListAnalyzer.Services;
+using System.Net.Http;
 
 namespace ProductListAnalyzer.Controllers {
     [ApiController]
-    [Route("api/[Controller]")]
+    [Route("api/[controller]")]
     public class APIController : ControllerBase {
-        private readonly ListAnalyzer _listanAnalyzer;
-        private readonly ProductData _productData;
+        private readonly ListAnalyzer _listAnalyzer;
 
-        public APIController(ListAnalyzer listanAnalyzer, ProductData productData) {
-            _listanAnalyzer = listanAnalyzer;
-            _productData = productData;
-            _productData.LoadFromJson("https://flapotest.blob.core.windows.net/test/ProductData.json");
+        public APIController(ListAnalyzer listanAnalyzer) {
+            _listAnalyzer = listanAnalyzer;
         }
 
-        // Route for sorting List by price with "/api/APIController/sortByPrice"
-        [HttpGet("sortByPrice")]
-        public IActionResult SortByPrice() {
-            var articles = _productData.Articles;
-            var sortedArticles = _listanAnalyzer.SortByPrice(articles);
-            return Ok(sortedArticles);
+        // Route for returning list of most expensive and cheapest articles with "/api/APIController/getMostExpensive"
+        [HttpGet("mostExpensiveAndCheapest")]
+        public IActionResult GetMostExpensiveAndCheapest(string url) {
+            var jsonContent = FetchJsonFromUrl(url);
+            var articles = JsonConvert.DeserializeObject<List<Article>>(jsonContent);
+            var mostExpensive = _listAnalyzer.GetMostExpensive(articles);
+            var cheapest = _listAnalyzer.GetCheapest(articles);
+            var result = new {
+                MostExpensive = mostExpensive,
+                Cheapest = cheapest
+            };
+
+            return Ok(result);
         }
 
-
-        // Route for returning list of most expensive articles with "/api/APIController/getMostExpensive"
-        [HttpGet("getMostExpensive")]
-        public IActionResult GetMostExpensive() {
-            var articles = _productData.Articles;
-            var mostExpensiveArticle = _listanAnalyzer.GetMostExpensive(articles);
-            return Ok(mostExpensiveArticle);
+        // Route for Beer cost exactly €17.99, order by price per litre
+        [HttpGet("priceExactly1799")]
+        public IActionResult GetPriceExactly1799(string url) {
+            var jsonContent = FetchJsonFromUrl(url);
+            var articles = JsonConvert.DeserializeObject<List<Article>>(jsonContent);
+            var foundArticles = _listAnalyzer.GetByPriceAndSortByUnitPrice(articles, 17.99);
+            
+            return Ok(foundArticles);
         }
 
-        // Route for returning list of cheapest articles with "/api/APIController/getCheapest"
-        [HttpGet("getCheapest")]
-        public IActionResult GetCheapest() {
-            var articles = _productData.Articles;
-            var mostCheapestArticle = _listanAnalyzer.GetCheapest(articles);
-            return Ok(mostCheapestArticle);
-        }
+        // Route list of articles with most bottles with "/api/APIController/getMostBottles"
+        [HttpGet("mostBottles")]
+        public IActionResult GetMostBottles(string url) {
+            var jsonContent = FetchJsonFromUrl(url);
+            var articles = JsonConvert.DeserializeObject<List<Article>>(jsonContent);
+            var mostBottles = _listAnalyzer.GetMostBottles(articles);
 
-        // Route for returning list of articles with most bottles with "/api/APIController/getMostBottles"
-        [HttpGet("getMostBottles")]
-        public IActionResult GetMostBottles() {
-            var articles = _productData.Articles;
-            var mostBottles = _listanAnalyzer.GetMostBottles(articles);
             return Ok(mostBottles);
         }
 
         // Route for returning list of articles including results of routs of all other routes with "/api/APIController/doAllRoutes"
         [HttpGet("doAllRoutes")]
-        public IActionResult DoAllRoutes() {
-            var articles = _productData.Articles;
-            var allResults = _listanAnalyzer.DoAll(articles);
-            return Ok(allResults);
+        public IActionResult DoAllRoutes(string url) {
+            var jsonContent = FetchJsonFromUrl(url);
+            var articles = JsonConvert.DeserializeObject<List<Article>>(jsonContent);
+            var mostExpensive = _listAnalyzer.GetMostExpensive(articles);
+            var cheapest = _listAnalyzer.GetMostExpensive(articles);
+            var foundArticles = _listAnalyzer.GetByPriceAndSortByUnitPrice(articles, 17.99);
+            var mostBottles = _listAnalyzer.GetMostBottles(articles);
+            var result = new {
+                MostExpensive = mostExpensive,
+                Cheapest = cheapest,
+                GetPriceExactly1799 = foundArticles,
+                MostBottles = mostBottles
+            };
+            
+            return Ok(result);
+        }
+
+        // Support-method to load content from JSON File
+        private string FetchJsonFromUrl(string url)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                // Führe eine HTTP-GET-Anfrage aus, um die JSON-Daten abzurufen
+                var response = client.GetAsync(url).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Lese die JSON-Daten als String
+                    return response.Content.ReadAsStringAsync().Result;
+                }
+                throw new Exception("Failed to fetch data from URL");
+            }
         }
     }
 }
