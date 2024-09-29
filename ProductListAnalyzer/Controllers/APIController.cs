@@ -12,6 +12,7 @@ namespace ProductListAnalyzer.Controllers {
         public APIController(ListAnalyzer listanAnalyzer, ProductData productData) {
             _listanAnalyzer = listanAnalyzer;
             _productData = productData;
+            _productData.LoadFromJson("https://flapotest.blob.core.windows.net/test/ProductData.json");
         }
 
         // Route for sorting List by price with "/api/APIController/sortByPrice"
