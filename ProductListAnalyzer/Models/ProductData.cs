@@ -7,7 +7,8 @@ namespace ProductListAnalyzer.Models
 
         // load Data from JSON-File by given path
         public void LoadFromJson(string pathToJsonFile) {
-
+            string jsonContent = System.IO.File.ReadAllText(pathToJsonFile);
+            Articles = JsonConvert.DeserializeObject<List<Article>>(jsonContent);
         }
     }
 }
