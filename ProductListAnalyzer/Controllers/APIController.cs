@@ -33,8 +33,8 @@ namespace ProductListAnalyzer.Controllers
                         .Select(p => new {
                             ProductName = p.Name,
                             BrandName = p.BrandName,
-                    Articles = mostExpensive.Where(a => p.Articles.Contains(a))
-                    }).ToList(),
+                            Articles = mostExpensive.Where(a => p.Articles.Contains(a))
+                        }).ToList(),
                     Cheapest = products
                         .Where(p => p.Articles.Any(a => cheapest.Contains(a)))
                         .Select(p => new {
@@ -42,12 +42,15 @@ namespace ProductListAnalyzer.Controllers
                             BrandName = p.BrandName,
                             Articles = cheapest.Where(a => p.Articles.Contains(a))
                     }).ToList()
-                    };
+                };
 
-                return Ok(JsonConvert.SerializeObject(result, Formatting.Indented));
-            }
-            catch (Exception ex)
-            {
+                // Only serialise, if this route is not part of "doAllRoutes"-request
+                if (!IsDoAllRoutesRequest()) {
+                    return Ok(JsonConvert.SerializeObject(result, Formatting.Indented));
+                }
+
+                return Ok(result);
+            } catch (Exception ex) {
                 _logger.LogError($"Error: {ex.Message}");
                 return StatusCode(500, "Error fetching data");
             }
@@ -77,9 +80,13 @@ namespace ProductListAnalyzer.Controllers
                         .OrderBy(a => a.PricePerUnitText)
                     }).ToList();
 
-                return Ok(JsonConvert.SerializeObject(result, Formatting.Indented));
-            }
-            catch (Exception ex) {
+                // Only serialise, if this route is not part of "doAllRoutes"-request
+                if (!IsDoAllRoutesRequest()) {
+                    return Ok(JsonConvert.SerializeObject(result, Formatting.Indented));
+                }
+
+                return Ok(result);
+            } catch (Exception ex) {
                 _logger.LogError($"Error: {ex.Message}");
                 return StatusCode(500, "Error fetching data");
             }
@@ -103,9 +110,13 @@ namespace ProductListAnalyzer.Controllers
                         Articles = mostBottles.Where(a => p.Articles.Contains(a)).ToList()
                 }).ToList();
 
-                return Ok(JsonConvert.SerializeObject(result, Formatting.Indented));
-            }
-            catch (Exception ex) {
+                // Only serialise, if this route is not part of "doAllRoutes"-request
+                if (!IsDoAllRoutesRequest()) {
+                    return Ok(JsonConvert.SerializeObject(result, Formatting.Indented));
+                }
+
+                return Ok(result);
+            } catch (Exception ex) {
                 _logger.LogError($"Error: {ex.Message}");
                 return StatusCode(500, "Error fetching data");
             }
@@ -114,7 +125,23 @@ namespace ProductListAnalyzer.Controllers
         // Route for returning list of articles including results of routes of all other routes with "/api/APIController/doAllRoutes"
         [HttpGet("doAllRoutes")]
         public IActionResult DoAllRoutes(string url) {
-            return null;
+            try {
+                // All other routes are called within this route
+                var mostExpensiveAndCheapestResult = GetMostExpensiveAndCheapest(url) as OkObjectResult;
+                var priceExactly1799Result = GetPriceExactly1799(url) as OkObjectResult;
+                var mostBottlesResult = GetMostBottles(url) as OkObjectResult;
+                // Combined results not serialised, yet
+                var result = new {
+                    MostExpensiveAndCheapest = mostExpensiveAndCheapestResult?.Value,
+                    PriceExactly1799 = priceExactly1799Result?.Value,
+                    MostBottles = mostBottlesResult?.Value
+                };
+                // Serialisation of all results from all routes
+                return Ok(JsonConvert.SerializeObject(result, Formatting.Indented));
+            } catch (Exception ex) {
+                _logger.LogError($"Error: {ex.Message}");
+                return StatusCode(500, "Error fetching data");
+            }
         }
 
         // Support-method for Extracting JSON File, deserialize Products from that list and extract the articles within the products
@@ -153,6 +180,12 @@ namespace ProductListAnalyzer.Controllers
             { // Catches all other unrelated errors
                 throw new Exception("An unexpected error occured: " + ex.Message);
             }
+        }
+
+        // Support-method to determine if serialization is needed
+        private bool IsDoAllRoutesRequest() {
+            var routeName = Request.Path.Value;
+            return routeName.Contains("doAllRoutes");
         }
 
         private List<Product> FetchAndDeserializeJson(string url) { // Fetch and deserialize the JSON from the URL
