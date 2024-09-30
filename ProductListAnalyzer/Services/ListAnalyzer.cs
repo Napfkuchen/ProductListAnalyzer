@@ -14,18 +14,16 @@ namespace ProductListAnalyzer.Services {
         public List<Article> GetMostExpensive(List<Article> articles) {
             if (articles == null || articles.Count == 0)
                 return new List<Article>();
-
-            var maximalPrice = articles.Max(a => a.Price);
-            return articles.Where(a => a.Price == maximalPrice).ToList();
+            var maximalPrice = articles.Max(a => ParsePricePerUnit(a.PricePerUnitText));
+            return articles.Where(a => ParsePricePerUnit(a.PricePerUnitText) == maximalPrice).ToList();
         }
 
         // Returns cheapest item(s) 
         public List<Article> GetCheapest(List<Article> articles) {
             if (articles == null || articles.Count == 0)
                 return new List<Article>();
-
-            var mininumPrice = articles.Min(a => a.Price);
-            return articles.Where(a => a.Price == mininumPrice).ToList();
+            var minimiumPricePerLitre = articles.Min(a => ParsePricePerUnit(a.PricePerUnitText));
+            return articles.Where(a => ParsePricePerUnit(a.PricePerUnitText) == minimiumPricePerLitre).ToList();
         }
 
         // Return item(s) with most bottles
@@ -69,6 +67,23 @@ namespace ProductListAnalyzer.Services {
             return articles
                 .OrderBy(a => a.PricePerUnitText)
                 .ToList();
+        }
+
+        // Method for parse price from price-string into actual number to work with
+        private double ParsePricePerUnit(string pricePerUnitText)
+        {
+            // Extract price
+            var priceString = pricePerUnitText
+                .Replace("(", "")
+                .Replace("€", "")
+                .Replace("/Liter)", "")
+                .Trim();
+
+            if (double.TryParse(priceString, out var price)) {
+                return price;
+            }
+
+            throw new Exception("PricePerUnitText format is invalid");
         }
     }
 }

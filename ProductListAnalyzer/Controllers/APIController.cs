@@ -85,7 +85,7 @@ namespace ProductListAnalyzer.Controllers
             }
         }
 
-        // Route list of articles with most bottles with "/api/APIController/getMostBottles"
+        // Route list of articles with most bottles with "/api/getMostBottles"
         [HttpGet("mostBottles")]
         public IActionResult GetMostBottles(string url)
         {
@@ -111,32 +111,10 @@ namespace ProductListAnalyzer.Controllers
             }
         }
 
-        // Route for returning list of articles including results of routs of all other routes with "/api/APIController/doAllRoutes"
+        // Route for returning list of articles including results of routes of all other routes with "/api/APIController/doAllRoutes"
         [HttpGet("doAllRoutes")]
-        public IActionResult DoAllRoutes(string url)
-        {
-            try
-            {
-                var articles = GetArticlesFromUrl(url);
-                var mostExpensive = _listAnalyzer.GetMostExpensive(articles);
-                var cheapest = _listAnalyzer.GetMostExpensive(articles);
-                var foundArticles = _listAnalyzer.GetByPriceAndSortByUnitPrice(articles, 17.99);
-                var mostBottles = _listAnalyzer.GetMostBottles(articles);
-                var result = new
-                {
-                    MostExpensive = mostExpensive,
-                    Cheapest = cheapest,
-                    GetPriceExactly1799 = foundArticles,
-                    MostBottles = mostBottles
-                };
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error: {ex.Message}");
-                return StatusCode(500, "Error fetching data");
-            }
+        public IActionResult DoAllRoutes(string url) {
+            return null;
         }
 
         // Support-method for Extracting JSON File, deserialize Products from that list and extract the articles within the products
