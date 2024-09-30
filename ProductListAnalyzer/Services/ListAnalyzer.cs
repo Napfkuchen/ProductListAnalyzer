@@ -22,7 +22,26 @@ namespace ProductListAnalyzer.Services {
 
         // Return item(s) with most bottles
         public List<Article> GetMostBottles(List<Article> articles) {
-            return null;
+            // -ASSUMPTION- The amount of bottles is stated in field "shortDescription" in for example "20 x 0.5L", the twenty will be taken, bit fragile solunce since depending in specific string-format without variation but works at least for now (30.09.2024)
+            var regex = new Regex(@"(\d+)\s*x"); // Searching for number stated before letter "x"
+            var maxBottles = 0;
+            var articlesWithMostBottles = new List<Article>();
+
+            // Each time an article with an amount of bottles greater as the current saved number is found, the prior list will be cleared, the article is saved into the output list and the number will be arranged to the new max. If article with same number is found, the article will be add to the list without clearing it.
+            foreach (var article in articles) {
+                var hit = regex.Match(article.ShortDescription);
+                if (hit.Success && int.TryParse(hit.Groups[1].Value, out int bottleAmount)) { 
+                    if (bottleAmount > maxBottles) {
+                        maxBottles = bottleAmount;
+                        articlesWithMostBottles.Clear();
+                        articlesWithMostBottles.Add(article);
+                    } else if(bottleAmount == maxBottles) {
+                        articlesWithMostBottles.Add(article);
+                    }
+                }
+            }
+
+            return articlesWithMostBottles;
         }
 
         // Returns list with all three main Listing/sorting requirements
