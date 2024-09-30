@@ -50,11 +50,6 @@ namespace ProductListAnalyzer.Services {
             return articlesWithMostBottles;
         }
 
-        // Returns list with all three main Listing/sorting requirements
-        public List<Article> DoAll(List<Article> articles) {
-            return null;
-        }
-
         // Returns Items with a price of €17.99 sorted by ascending unit price 
         public List<Article> SortByPrice(List<Article> articles) {
             return articles
