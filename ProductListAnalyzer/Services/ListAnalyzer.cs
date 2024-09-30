@@ -12,12 +12,20 @@ namespace ProductListAnalyzer.Services {
 
         // Returns most expensive item(s) 
         public List<Article> GetMostExpensive(List<Article> articles) {
-            return null;
+            if (articles == null || articles.Count == 0)
+                return new List<Article>();
+
+            var maximalPrice = articles.Max(a => a.Price);
+            return articles.Where(a => a.Price == maximalPrice).ToList();
         }
 
         // Returns cheapest item(s) 
         public List<Article> GetCheapest(List<Article> articles) {
-            return null;
+            if (articles == null || articles.Count == 0)
+                return new List<Article>();
+
+            var mininumPrice = articles.Min(a => a.Price);
+            return articles.Where(a => a.Price == mininumPrice).ToList();
         }
 
         // Return item(s) with most bottles
