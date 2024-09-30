@@ -21,11 +21,10 @@ namespace ProductListAnalyzer.Controllers
 
         // Route for returning list of most expensive and cheapest articles with "/api/APIController/getMostExpensive"
         [HttpGet("mostExpensiveAndCheapest")]
-        public IActionResult GetMostExpensiveAndCheapest(string url)
-        {
-            try
-            {
-                var articles = GetArticlesFromUrl(url);
+        public IActionResult GetMostExpensiveAndCheapest(string url) {
+            try {
+                var products = FetchAndDeserializeJson(url);
+                var articles = products.SelectMany(p => p.Articles).ToList();
                 var mostExpensive = _listAnalyzer.GetMostExpensive(articles);
                 _logger.LogInformation($"Most expensive result: {JsonConvert.SerializeObject(mostExpensive)}");
                 var cheapest = _listAnalyzer.GetCheapest(articles);
@@ -46,18 +45,31 @@ namespace ProductListAnalyzer.Controllers
 
         // Route for Beer cost exactly €17.99, order by price per litre
         [HttpGet("priceExactly1799")]
-        public IActionResult GetPriceExactly1799(string url)
-        {
-            try
-            {
-                var articles = GetArticlesFromUrl(url);
-                var foundArticles = _listAnalyzer.GetByPriceAndSortByUnitPrice(articles, 17.99);
-                _logger.LogInformation($"Most expensive result: {JsonConvert.SerializeObject(foundArticles)}");
+        public IActionResult GetPriceExactly1799(string url) {
+            try {
+                var products = FetchAndDeserializeJson(url);
+                var articles = products.SelectMany(p => p.Articles)
+                    .Where(a => a.Price == 17.99) // Filter by price exactly €17.99
+                    .OrderBy(a => a.PricePerUnitText) // Sort by price per litre
+                    .ToList();
 
-                return Ok(foundArticles);
+                if (!articles.Any()) {
+                    return NotFound("There are no articles found with price of 17.99€.");
+                }
+
+                var result = products // Create result with name and brand name
+                    .Where(p => p.Articles.Any(a => a.Price == 17.99))
+                    .Select(p => new {
+                        ProductName = p.Name,
+                        BrandName = p.BrandName,
+                        Articles = p.Articles
+                        .Where(a => a.Price == 17.99)
+                        .OrderBy(a => a.PricePerUnitText)
+                    }).ToList();
+
+                return Ok(JsonConvert.SerializeObject(result, Formatting.Indented));
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.LogError($"Error: {ex.Message}");
                 return StatusCode(500, "Error fetching data");
             }
@@ -73,7 +85,8 @@ namespace ProductListAnalyzer.Controllers
                 var articles = products.SelectMany(p => p.Articles).ToList();
                 var mostBottles = _listAnalyzer.GetMostBottles(articles);
 
-                var result = products.Where(p => p.Articles.Any(a => mostBottles.Contains(a)))  // Filter articles with specific requirement without other articles within product
+                var result = products
+                    .Where(p => p.Articles.Any(a => mostBottles.Contains(a)))  // Filter articles with specific requirement without other articles within product
                     .Select(p => new {
                         ProductName = p.Name,
                         BrandName = p.BrandName,
@@ -154,10 +167,8 @@ namespace ProductListAnalyzer.Controllers
             }
         }
 
-        private List<Product> FetchAndDeserializeJson(string url)
-        {
-            try
-            {
+        private List<Product> FetchAndDeserializeJson(string url) { // Fetch and deserialize the JSON from the URL
+            try {
                 var jsonContent = FetchJsonFromUrl(url);
 
                 if (string.IsNullOrEmpty(jsonContent))
