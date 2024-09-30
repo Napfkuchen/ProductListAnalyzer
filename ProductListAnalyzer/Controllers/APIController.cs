@@ -26,15 +26,25 @@ namespace ProductListAnalyzer.Controllers
                 var products = FetchAndDeserializeJson(url);
                 var articles = products.SelectMany(p => p.Articles).ToList();
                 var mostExpensive = _listAnalyzer.GetMostExpensive(articles);
-                _logger.LogInformation($"Most expensive result: {JsonConvert.SerializeObject(mostExpensive)}");
                 var cheapest = _listAnalyzer.GetCheapest(articles);
-                _logger.LogInformation($"Most expensive result: {JsonConvert.SerializeObject(cheapest)}");
-                var result = new
-                {
-                    MostExpensive = mostExpensive,
-                    Cheapest = cheapest
-                };
-                return Ok(result);
+                var result = new {
+                    MostExpensive = products
+                        .Where(p => p.Articles.Any(a => mostExpensive.Contains(a)))
+                        .Select(p => new {
+                            ProductName = p.Name,
+                            BrandName = p.BrandName,
+                    Articles = mostExpensive.Where(a => p.Articles.Contains(a))
+                    }).ToList(),
+                    Cheapest = products
+                        .Where(p => p.Articles.Any(a => cheapest.Contains(a)))
+                        .Select(p => new {
+                            ProductName = p.Name,
+                            BrandName = p.BrandName,
+                            Articles = cheapest.Where(a => p.Articles.Contains(a))
+                    }).ToList()
+                    };
+
+                return Ok(JsonConvert.SerializeObject(result, Formatting.Indented));
             }
             catch (Exception ex)
             {
